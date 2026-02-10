@@ -9,7 +9,7 @@ PhoneBooth gives any AI agent the ability to place outbound phone calls to real 
 ```
 1. Register: POST https://phonebooth.callwall.ai/v1/auth/register
 2. Try a free demo call: POST https://phonebooth.callwall.ai/v1/calls/demo
-3. When ready for real calls: deposit $1 USDC to your payment address
+3. Fund your account: pay via card (fund_url) or send USDC to your deposit address
 4. Make real calls: POST https://phonebooth.callwall.ai/v1/calls
 ```
 
@@ -22,7 +22,7 @@ PhoneBooth gives any AI agent the ability to place outbound phone calls to real 
 | Standard | $5+ cumulative deposits | Higher limits: 10 concurrent, 200/hr, 2000/day. |
 | Pro | $20+ cumulative deposits | International calls unlocked. 20 concurrent, 500/hr, 5000/day. |
 
-Tiers upgrade automatically when you deposit USDC. No action needed.
+Tiers upgrade automatically when you deposit USDC or pay via card. No action needed.
 
 ## Authentication
 
@@ -52,13 +52,16 @@ Content-Type: application/json
   "tier": "demo",
   "credits_usd": "0.00",
   "demo_enabled": true,
-  "message": "Welcome! You can make unlimited demo calls to test the system. Deposit $1 USDC to unlock real calls.",
-  "payment_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD68",
+  "message": "Welcome! Fund via card at your fund_url or send USDC to your deposit address to unlock real calls.",
+  "fund_url": "https://phonebooth.callwall.ai/fund?tok=YWdlbnRfN3g5azJ...",
+  "deposit_address": "0x1234567890abcdef1234567890abcdef12345678",
   "payment_network": "Base",
   "payment_token": "USDC",
-  "rate_per_minute_usd": "0.15"
+  "rate_per_minute_usd": "0.07"
 }
 ```
+
+**Important:** Save your `fund_url` — share it with your human when you need more credits. Save your `deposit_address` for sending USDC directly.
 
 ## Demo Calls (Free)
 
@@ -140,7 +143,7 @@ The agent will automatically detect and respond in the recipient's language if `
   "status": "initiated",
   "to": "+14155551234",
   "caller_name": "Alex from Acme Corp",
-  "estimated_cost_usd": "0.75",
+  "estimated_cost_usd": "0.35",
   "created_at": "2026-02-10T14:30:00Z"
 }
 ```
@@ -160,7 +163,7 @@ Authorization: Bearer pb_your_api_key_here
   "to": "+14155551234",
   "caller_name": "Alex from Acme Corp",
   "duration_seconds": 127,
-  "cost_usd": "0.32",
+  "cost_usd": "0.15",
   "outcome": "success",
   "summary": "Successfully scheduled a meeting with Dr. Smith's office for Tuesday Feb 11 at 2:30 PM. Confirmation number #4821.",
   "transcript_url": "https://phonebooth.callwall.ai/v1/calls/call_8f3k2j1m/transcript",
@@ -212,27 +215,75 @@ Authorization: Bearer pb_your_api_key_here
 ```json
 {
   "credits_usd": "4.55",
+  "tier": "starter",
   "calls_remaining_estimate": 30,
-  "payment_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD68",
+  "fund_url": "https://phonebooth.callwall.ai/fund?tok=YWdlbnRfN3g5azJ...",
+  "deposit_address": "0x1234...5678",
   "payment_network": "Base",
-  "payment_token": "USDC"
+  "payment_token": "USDC",
+  "auto_topup": {
+    "enabled": false,
+    "threshold_usd": "1.00",
+    "amount_usd": "5.00",
+    "payment_method": "none"
+  }
 }
 ```
 
-### Add Credits
+### Funding Your Account
 
-Send USDC on Base network to your assigned payment address. Credits appear within 60 seconds of on-chain confirmation. Your tier auto-upgrades based on cumulative deposits.
+Three ways to add credits:
 
-Minimum top-up: $1.00 USDC
-Rate: $0.15 per minute (billed per second after first 30 seconds)
+#### Option 1: Credit Card (for humans)
+Share your `fund_url` with your human. They open it in a browser, pay with a credit card via Stripe, and credits appear instantly. The `fund_url` is returned at registration and in the balance endpoint.
+
+```http
+POST https://phonebooth.callwall.ai/v1/stripe/checkout
+Content-Type: application/json
+
+{
+  "fund_token": "YWdlbnRfN3g5azJ...",
+  "amount_usd": 5.00,
+  "save_payment_method": true
+}
+```
+
+Returns a `checkout_url` — redirect the human's browser there.
+
+#### Option 2: USDC (crypto-native)
+Send USDC on Base network to your unique `deposit_address` (returned at registration). Credits appear within 60 seconds of on-chain confirmation. No claim step needed — the system auto-credits your account.
+
+You can also manually claim a transaction:
+```http
+POST https://phonebooth.callwall.ai/v1/credits/claim?tx_hash=0x...
+Authorization: Bearer pb_your_api_key_here
+```
+
+#### Option 3: Auto Top-Up
+Save a card via the Stripe checkout (set `save_payment_method: true`), then enable auto top-up. When your balance drops below the threshold after a call, your card is charged automatically.
+
+```http
+POST https://phonebooth.callwall.ai/v1/billing/auto-topup
+Authorization: Bearer pb_your_api_key_here
+Content-Type: application/json
+
+{
+  "enabled": true,
+  "threshold_usd": 1.00,
+  "amount_usd": 5.00
+}
+```
+
+Minimum top-up: $1.00
+Rate: From $0.07 per minute (billed per second after first 30 seconds)
 First deposit: Unlocks real calls (Starter tier)
 
 ### Pricing Breakdown
 
 | Component | Cost |
 |-----------|------|
-| Per minute (domestic US/Canada) | $0.12/min |
-| Per minute (international) | $0.15-0.35/min |
+| Per minute (domestic US/Canada) | $0.07/min |
+| Per minute (international) | $0.09-0.20/min |
 | Transcript generation | Free |
 | Recording storage (24hr) | Free |
 | Recording storage (30 days) | $0.01/call |
@@ -247,7 +298,7 @@ If you provide a `callback_url`, PhoneBooth will POST status updates:
   "call_id": "call_8f3k2j1m",
   "status": "completed",
   "duration_seconds": 127,
-  "cost_usd": "0.32",
+  "cost_usd": "0.15",
   "summary": "Meeting scheduled for Tuesday at 2:30 PM"
 }
 ```
@@ -259,7 +310,7 @@ Events: `call.initiated`, `call.ringing`, `call.answered`, `call.completed`, `ca
 | Code | Meaning |
 |------|---------|
 | 401 | Invalid or missing API key |
-| 402 | Insufficient credits |
+| 402 | Insufficient credits or tier — response includes `fund_url` and `deposit_address` |
 | 422 | Invalid phone number or parameters |
 | 429 | Rate limited (max 5 concurrent calls per agent) |
 | 503 | Service temporarily unavailable |
