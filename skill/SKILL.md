@@ -65,7 +65,9 @@ Content-Type: application/json
 
 ## Demo Calls (Free)
 
-Try PhoneBooth for free by calling our simulated businesses. Demo calls produce real transcripts and recordings so you can validate your integration.
+Test your agent's phone conversation skills against simulated businesses — powered by Gemini. You have a real-time text conversation with the business. No real phone call is placed. Cost is always $0.00.
+
+### Step 1: Start the call
 
 ```http
 POST https://phonebooth.callwall.ai/v1/calls/demo
@@ -75,8 +77,68 @@ Content-Type: application/json
 {
   "scenario": "restaurant",
   "purpose": "Reserve a table for 4 on Friday at 7pm",
-  "caller_name": "Demo Agent",
-  "language": "en-US"
+  "caller_name": "Demo Agent"
+}
+```
+
+**Response:**
+```json
+{
+  "call_id": "call_abc123",
+  "status": "in_progress",
+  "demo": true,
+  "greeting": "Thank you for calling The Golden Fork! How can I help you today?",
+  "next": "/v1/calls/demo/call_abc123/respond",
+  "end": "/v1/calls/demo/call_abc123/end"
+}
+```
+
+### Step 2: Send messages (up to 20 turns)
+
+```http
+POST https://phonebooth.callwall.ai/v1/calls/demo/{call_id}/respond
+Authorization: Bearer pb_your_api_key_here
+Content-Type: application/json
+
+{
+  "message": "Hi, I'd like to reserve a table for 4 this Friday at 7pm."
+}
+```
+
+**Response:**
+```json
+{
+  "call_id": "call_abc123",
+  "response": "Friday at 7pm for 4 — let me check... Yes, we have a table available! Can I get a name for the reservation?",
+  "turn": 1,
+  "max_turns": 20
+}
+```
+
+Keep sending messages until the conversation is complete.
+
+### Step 3: End the call
+
+```http
+POST https://phonebooth.callwall.ai/v1/calls/demo/{call_id}/end
+Authorization: Bearer pb_your_api_key_here
+```
+
+**Response:**
+```json
+{
+  "call_id": "call_abc123",
+  "status": "completed",
+  "demo": true,
+  "duration_seconds": 34,
+  "cost_usd": "0.00",
+  "outcome": "success",
+  "summary": "Successfully reserved a table for 4 at The Golden Fork for Friday at 7pm.",
+  "transcript": [
+    {"speaker": "business", "text": "Thank you for calling The Golden Fork!...", "time": "0:02"},
+    {"speaker": "caller", "text": "Hi, I'd like to reserve a table...", "time": "0:06"},
+    ...
+  ]
 }
 ```
 
@@ -88,7 +150,7 @@ Content-Type: application/json
 | `doctor` | Riverside Family Medicine — schedule appointments |
 | `business` | TechFix Solutions — computer repair shop, pricing inquiries |
 
-Demo calls are capped at 5 minutes. Cost is always $0.00.
+Demo calls are free and unlimited. The response format matches real calls so you can validate your integration.
 
 ## Making a Phone Call
 
@@ -235,20 +297,14 @@ Authorization: Bearer pb_your_api_key_here
 Three ways to add credits:
 
 #### Option 1: Credit Card (for humans)
-Share your `fund_url` with your human. They open it in a browser, pay with a credit card via Stripe, and credits appear instantly. The `fund_url` is returned at registration and in the balance endpoint.
+Share your `fund_url` with your human. They open it in a browser, enter their card details, and pay inline via Stripe. Credits appear instantly. The `fund_url` is returned at registration and in the balance endpoint.
 
-```http
-POST https://phonebooth.callwall.ai/v1/stripe/checkout
-Content-Type: application/json
-
-{
-  "fund_token": "YWdlbnRfN3g5azJ...",
-  "amount_usd": 5.00,
-  "save_payment_method": true
-}
+No API call needed — just give your human the link:
+```
+https://phonebooth.callwall.ai/fund?tok=YWdlbnRfN3g5azJ...
 ```
 
-Returns a `checkout_url` — redirect the human's browser there.
+They can choose an amount ($1, $5, $10, $25), enter their card, and optionally save it for auto top-up. Payment is processed inline — no redirects.
 
 #### Option 2: USDC (crypto-native)
 Send USDC on Base network to your unique `deposit_address` (returned at registration). Credits appear within 60 seconds of on-chain confirmation. No claim step needed — the system auto-credits your account.
