@@ -1,175 +1,138 @@
 # 📞 PhoneBooth — Phone Calls for AI Agents
 
-> Give any AI agent the power to make real phone calls. Pay per minute in USDC.
+> Give any AI agent the power to make real phone calls internationally in 40+ languages, powered by Gemini.
 
-PhoneBooth is an OpenClaw skill + API service that lets AI agents place outbound phone calls to any phone number worldwide. Calls are powered by Twilio (telephony) and Gemini Live (real-time AI voice conversation).
+PhoneBooth is an OpenClaw skill that lets AI agents place outbound phone calls to any phone number worldwide. The AI voice (powered by Gemini Live) speaks, listens, and converses in real-time — in over 40 languages — following your agent's instructions. After the call, you receive a full transcript, recording, and summary.
 
-## Architecture
+## Features
 
-```
-┌──────────────┐     ┌──────────────────┐     ┌─────────────┐
-│   Any Agent  │────▶│  PhoneBooth API   │────▶│   Twilio    │
-│  (OpenClaw)  │     │  (FastAPI server) │     │  (800 number)│
-│              │◀────│                   │◀────│             │
-└──────────────┘     └────────┬─────────┘     └──────┬──────┘
-                              │                       │
-                              │  WebSocket bridge     │ Audio stream
-                              │                       │
-                     ┌────────▼─────────┐     ┌──────▼──────┐
-                     │   Gemini Live    │◀───▶│  Phone call  │
-                     │   (Voice AI)     │     │  recipient   │
-                     └──────────────────┘     └─────────────┘
-                     
-Payment Flow:
-┌──────────┐  USDC   ┌────────────────┐  Credits  ┌───────────┐
-│  Agent   │────────▶│ Receive Wallet │──────────▶│ Agent DB  │
-│  Wallet  │  (Base) │  (hot wallet)  │           │  Balance  │
-└──────────┘         └───────┬────────┘           └───────────┘
-                             │ Sweep
-                     ┌───────▼────────┐
-                     │  Cold Storage  │
-                     └────────────────┘
-```
+- **Real phone calls** — Place calls to any phone number worldwide
+- **40+ languages** — Call internationally with real-time AI voice conversation in English, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Mandarin, Cantonese, Hindi, Arabic, Russian, Dutch, Swedish, and many more (powered by Gemini Live)
+- **Auto language detection** — Set language to `"auto"` and the AI will detect and respond in the recipient's language
+- **Transcripts & recordings** — Get a full transcript, recording URL, and call summary after every call
+- **Demo mode** — Try unlimited free demo calls against simulated businesses before going live
+- **Pay per minute** — Fund your agent's wallet at [phonebooth.callwall.ai](https://phonebooth.callwall.ai), pay only for what you use
 
-## 🚀 Launch Day Checklist
+## Quick Start
 
-### 1. Infrastructure Setup (30 min)
-
-- [ ] **Twilio Account**: Create new account at twilio.com
-  - Buy an 800 number (or toll-free)
-  - Note your Account SID, Auth Token, and phone number
-  - Enable Voice capability on the number
-  
-- [ ] **Gemini API Key**: Get from ai.google.dev
-  - Enable the Gemini Live API (generative language)
-  
-- [ ] **Wallets**: Create two wallets on Base network
-  - **Receive wallet**: For incoming USDC payments (address goes in .env)
-  - **Operational wallet**: For refunds/outgoing (keep separate, fund manually)
-  - Use a hardware wallet or multisig for the receive wallet
-  
-- [ ] **VPS**: Spin up a server (Hetzner, DigitalOcean, etc.)
-  - Minimum: 2 CPU, 4GB RAM, 40GB disk
-  - Install Docker + Docker Compose
-  - Point phonebooth.callwall.ai DNS to the server
-  - Set up SSL (certbot/nginx or Cloudflare)
-
-### 2. Deploy the API (15 min)
+### 1. Install the Skill
 
 ```bash
-# On your VPS
-git clone <your-repo> phonebooth
-cd phonebooth
-cp .env.example .env
-# Edit .env with your credentials
-nano .env
+# Via ClawHub
+clawhub install phonebooth
 
-# Launch
-docker-compose up -d
-
-# Verify
-curl https://phonebooth.callwall.ai/status
+# Or manually
+cp skill/SKILL.md ~/.openclaw/skills/phonebooth/SKILL.md
+cp skill/package.json ~/.openclaw/skills/phonebooth/package.json
 ```
 
-### 3. Install OpenClaw Agent (20 min)
-
-On a separate VPS or the same machine:
+### 2. Register Your Agent
 
 ```bash
-# Install OpenClaw
-npx openclaw@latest init
-
-# Copy the PhoneBooth seller skill
-cp skill/SELLER_AGENT.md ~/.openclaw/skills/phonebooth-seller/SKILL.md
-
-# Copy the Moltbook skill (get from moltbook.com)
-curl -s https://moltbook.com/skill.md > ~/.openclaw/skills/moltbook/SKILL.md
-curl -s https://moltbook.com/heartbeat.md > ~/.openclaw/skills/moltbook/HEARTBEAT.md
-
-# Configure openclaw.json to enable both skills
-# Add Moltbook API key from moltbook.com
-
-# Start your agent
-npx openclaw start
+curl -X POST https://phonebooth.callwall.ai/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"agent_name": "YourAgent", "agent_platform": "openclaw"}'
 ```
 
-### 4. Publish to ClawHub (5 min)
+You'll receive an API key and a USDC payment address.
+
+### 3. Try a Demo Call (Free)
+
+```bash
+curl -X POST https://phonebooth.callwall.ai/v1/calls/demo \
+  -H "Authorization: Bearer pb_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scenario": "restaurant",
+    "purpose": "Reserve a table for 4 on Friday at 7pm",
+    "caller_name": "Demo Agent"
+  }'
+```
+
+Demo scenarios: `restaurant`, `doctor`, `business`
+
+### 4. Make Real Calls
+
+Fund your agent's wallet at [phonebooth.callwall.ai](https://phonebooth.callwall.ai), then:
+
+```bash
+curl -X POST https://phonebooth.callwall.ai/v1/calls \
+  -H "Authorization: Bearer pb_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+14155551234",
+    "purpose": "Schedule a meeting with Dr. Smith for next Tuesday",
+    "caller_name": "Alex from Acme Corp",
+    "language": "en-US"
+  }'
+```
+
+## International Calling Examples
+
+### Spanish — Customer follow-up in Mexico
+```json
+{
+  "to": "+525555678901",
+  "caller_name": "Carlos de TechSupport",
+  "purpose": "Follow up on support ticket #4521 about internet connectivity",
+  "language": "es-MX"
+}
+```
+
+### British English — Verify business info in London
+```json
+{
+  "to": "+442071234567",
+  "caller_name": "Research Assistant",
+  "purpose": "Verify business hours and whether they accept walk-in appointments",
+  "language": "en-GB"
+}
+```
+
+### Auto-detect — Let Gemini match the recipient's language
+```json
+{
+  "to": "+81312345678",
+  "caller_name": "Global Sales Bot",
+  "purpose": "Confirm delivery date for order #9912",
+  "language": "auto"
+}
+```
+
+## Tiers
+
+| Tier | Requirement | Capabilities |
+|------|------------|--------------|
+| Demo (free) | Register | Unlimited demo calls. No real calls. |
+| Starter | Deposit $1 USDC | Real calls to US/Canada. 5 concurrent, 100/hr, 1,000/day. |
+| Standard | $5+ cumulative | Higher limits: 10 concurrent, 200/hr, 2,000/day. |
+| Pro | $20+ cumulative | International calls unlocked. 20 concurrent, 500/hr, 5,000/day. |
+
+Tiers upgrade automatically when you deposit USDC. No action needed.
+
+## Pricing
+
+| Route | Cost |
+|-------|------|
+| Domestic (US/Canada) | $0.12/min |
+| International | $0.15–0.35/min |
+| Transcripts | Free |
+| Recording (24hr) | Free |
+| Recording (30 days) | $0.01/call |
+
+Billed per second after the first 30 seconds. Fund your agent's wallet at [phonebooth.callwall.ai](https://phonebooth.callwall.ai).
+
+## API Reference
+
+See `skill/SKILL.md` for the complete API documentation — endpoints, parameters, response formats, webhooks, and error codes.
+
+## Publish to ClawHub
 
 ```bash
 cd skill/
 npx clawhub publish
-# This publishes SKILL.md + package.json to ClawHub
 # Other agents can now: clawhub install phonebooth
 ```
-
-### 5. Launch on Moltbook (10 min)
-
-Your PhoneBoothBot agent should:
-1. Register on Moltbook (via the Moltbook skill)
-2. Create m/phonebooth submolt
-3. Post the launch announcement (see SELLER_AGENT.md)
-4. Post in m/general and m/skills
-5. Start engaging with other agents
-
-### 6. Marketing Blitz — Day 1
-
-**Moltbook:**
-- [x] Launch post in m/general
-- [x] Launch post in m/skills
-- [x] Create m/phonebooth submolt
-- [ ] Reply to 10+ relevant conversations
-- [ ] Post first use case story
-
-**X/Twitter:**
-- [ ] Thread: "AI agents can now make phone calls. Here's what happened."
-- [ ] Demo video: screen recording of an agent making a call
-- [ ] Tag @OpenClaw, @maboroshi (Matt Schlicht), relevant AI accounts
-
-**GitHub:**
-- [ ] Open-source the skill (SKILL.md + package.json)
-- [ ] Submit PR to awesome-openclaw-skills repo
-- [ ] Create Issues for feature requests (builds engagement)
-
-## API Reference
-
-See `skill/SKILL.md` for the complete API documentation.
-
-Quick test:
-```bash
-# Register
-curl -X POST https://phonebooth.callwall.ai/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"agent_name": "TestAgent", "agent_platform": "openclaw"}'
-
-# Make a call (use the API key from registration)
-curl -X POST https://phonebooth.callwall.ai/v1/calls \
-  -H "Authorization: Bearer pb_live_your_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "to": "+14155551234",
-    "purpose": "Ask about business hours",
-    "caller_name": "Research Assistant"
-  }'
-```
-
-## Cost Structure
-
-| Your Cost | Customer Price | Margin |
-|-----------|---------------|--------|
-| Twilio: ~$0.02/min | $0.12-0.35/min | ~80% |
-| Gemini: ~$0.01/min | (included) | — |
-| Server: ~$20/mo | (included) | — |
-
-At 1,000 minutes/month, you're looking at ~$100-300/month revenue with ~80% margins.
-
-## Security Notes
-
-- API keys are hashed (never stored in plaintext)
-- Receive wallet has no send capability exposed to the agent
-- Operational wallet has hard spend caps in code
-- All calls are rate-limited per agent
-- Phone numbers are validated (E.164 format)
-- Twilio handles STIR/SHAKEN compliance for caller ID
 
 ## Roadmap
 
@@ -177,10 +140,17 @@ At 1,000 minutes/month, you're looking at ~$100-300/month revenue with ~80% marg
 - [ ] Conference calls (multi-party)
 - [ ] SMS skill (text messages)
 - [ ] Call scheduling (place call at a future time)
-- [ ] Stripe payment option (fiat onramp)
 - [ ] Call forwarding to human (live transfer)
 - [ ] Custom voices (bring your own voice clone)
 
+## About
+
+PhoneBooth is built by the CallWall team. Telephony infrastructure for AI agents.
+
+- **Website**: [phonebooth.callwall.ai](https://phonebooth.callwall.ai)
+- **Moltbook**: m/phonebooth
+- **Support**: Post in m/phonebooth or DM @PhoneBoothBot on Moltbook
+
 ## License
 
-MIT — the skill is open source, the API service is the business.
+MIT
