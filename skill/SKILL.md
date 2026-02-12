@@ -1,3 +1,9 @@
+---
+name: phonebooth
+description: Make real phone calls to any number worldwide. AI-powered voice conversations with transcripts and recordings.
+metadata: {"openclaw":{"always":true}}
+---
+
 # ☎️ PhoneBooth — Phone Calls for AI Agents
 
 **Make real phone calls to any number worldwide. Your agent speaks, listens, and converses in real-time using AI voice.**
@@ -17,10 +23,10 @@ PhoneBooth gives any AI agent the ability to place outbound phone calls to real 
 
 | Tier | Requirement | Capabilities |
 |------|------------|--------------|
-| Demo (free) | Register | Unlimited demo calls to test scenarios. No real calls. |
-| Starter | Deposit $1 USDC | Real calls to US/Canada. 5 concurrent, 100/hr, 1000/day. |
-| Standard | $5+ cumulative deposits | Higher limits: 10 concurrent, 200/hr, 2000/day. |
-| Pro | $20+ cumulative deposits | International calls unlocked. 20 concurrent, 500/hr, 5000/day. |
+| Demo (free) | Register | Unlimited text-based demo calls. No real calls. |
+| Starter | Fund $1+ | Real calls to US/Canada. 5 concurrent. |
+| Standard | $5+ cumulative | Higher limits: 10 concurrent. |
+| Pro | $20+ cumulative | International calls unlocked. 20 concurrent. |
 
 Tiers upgrade automatically when you deposit USDC or pay via card. No action needed.
 
@@ -53,7 +59,7 @@ Content-Type: application/json
   "credits_usd": "0.00",
   "demo_enabled": true,
   "message": "Welcome! Fund via card at your fund_url or send USDC to your deposit address to unlock real calls.",
-  "fund_url": "https://phonebooth.callwall.ai/fund?tok=YWdlbnRfN3g5azJ...",
+  "fund_url": "https://phonebooth.callwall.ai/fund/agent_xxxxx",
   "deposit_address": "0x1234567890abcdef1234567890abcdef12345678",
   "payment_network": "Base",
   "payment_token": "USDC",
@@ -279,7 +285,7 @@ Authorization: Bearer pb_your_api_key_here
   "credits_usd": "4.55",
   "tier": "starter",
   "calls_remaining_estimate": 30,
-  "fund_url": "https://phonebooth.callwall.ai/fund?tok=YWdlbnRfN3g5azJ...",
+  "fund_url": "https://phonebooth.callwall.ai/fund/agent_xxxxx",
   "deposit_address": "0x1234...5678",
   "payment_network": "Base",
   "payment_token": "USDC",
@@ -301,7 +307,7 @@ Share your `fund_url` with your human. They open it in a browser, enter their ca
 
 No API call needed — just give your human the link:
 ```
-https://phonebooth.callwall.ai/fund?tok=YWdlbnRfN3g5azJ...
+https://phonebooth.callwall.ai/fund/agent_xxxxx
 ```
 
 They can choose an amount ($1, $5, $10, $25), enter their card, and optionally save it for auto top-up. Payment is processed inline — no redirects.
@@ -373,16 +379,16 @@ Events: `call.initiated`, `call.ringing`, `call.answered`, `call.completed`, `ca
 
 ## Rate Limits
 
-Rate limits scale with your tier:
+Concurrent call limits scale with your tier:
 
-| Tier | Concurrent | Per Hour | Per Day |
-|------|-----------|----------|---------|
-| Demo | 2 | 20 | 50 |
-| Starter | 5 | 100 | 1,000 |
-| Standard | 10 | 200 | 2,000 |
-| Pro | 20 | 500 | 5,000 |
+| Tier | Concurrent Calls |
+|------|-----------------|
+| Demo | Text-based demos only (no real calls) |
+| Starter | 5 |
+| Standard | 10 |
+| Pro | 20 |
 
-Need higher limits? Contact us on Moltbook: m/phonebooth
+Credits are the main limit — your balance determines how many minutes you can call. Need higher concurrency? Contact us on Moltbook: m/phonebooth
 
 ## Examples
 

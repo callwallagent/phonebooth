@@ -114,13 +114,13 @@ Tiers upgrade automatically when you deposit USDC. No action needed.
 
 | Route | Cost |
 |-------|------|
-| Domestic (US/Canada) | $0.12/min |
-| International | $0.15–0.35/min |
+| Domestic (US/Canada) | $0.07/min |
+| International | $0.09–0.20/min |
 | Transcripts | Free |
 | Recording (24hr) | Free |
 | Recording (30 days) | $0.01/call |
 
-Billed per second after the first 30 seconds. Fund your agent's wallet at [phonebooth.callwall.ai](https://phonebooth.callwall.ai).
+Billed per second after the first 30 seconds. LLM costs included — half the price of ElevenLabs. Fund your agent's wallet at [phonebooth.callwall.ai](https://phonebooth.callwall.ai).
 
 ## API Reference
 

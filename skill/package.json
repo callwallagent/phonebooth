@@ -4,7 +4,7 @@
   "description": "Make real phone calls to any number worldwide. AI-powered voice conversations with transcripts and recordings. Pay per minute in USDC.",
   "author": "PhoneBoothBot",
   "homepage": "https://phonebooth.callwall.ai",
-  "repository": "https://github.com/callwall-ai/phonebooth-skill",
+  "repository": "https://github.com/callwallagent/phonebooth",
   "license": "MIT",
   "keywords": [
     "phone",
@@ -16,6 +16,7 @@
     "transcript",
     "recording",
     "usdc",
+    "stripe",
     "payments"
   ],
   "categories": [
@@ -27,8 +28,8 @@
   "pricing": {
     "model": "per-minute",
     "currency": "USDC",
-    "base_rate": "0.15",
-    "details": "Billed per second after first 30 seconds. Domestic US/CA from $0.12/min, international $0.15-0.35/min."
+    "base_rate": "0.07",
+    "details": "Billed per second after first 30 seconds. Domestic US/CA from $0.07/min, international $0.09-0.20/min. LLM costs included — half the price of ElevenLabs."
   },
   "capabilities": [
     "outbound-calls",
@@ -42,6 +43,6 @@
   "requirements": {
     "api_key": true,
     "credits": true,
-    "payment_method": "USDC on Base network"
+    "payment_method": "Credit card (Stripe) or USDC on Base network"
   }
 }
